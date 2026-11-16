@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>i4T Maintenance – Work Order Table and Calendar Prototype</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --line:#dfe6ee;
+      --line2:#edf1f6;
+      --text:#0f172a;
+      --muted:#5b6576;
+      --brand:#0d6efd;
+      --brand-dark:#0d5ad4;
+      --green:#26a745;
+      --green-bg:#eaf7ee;
+      --orange:#f59e0b;
+      --orange-bg:#fff4dd;
+      --red:#e54b4b;
+      --red-bg:#ffeaea;
+      --blue-pill:#e8f1ff;
+      --blue-text:#2563eb;
+      --shadow:0 8px 24px rgba(15,23,42,.08);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+    .app{display:flex;min-height:100vh}
+    .sidebar{
+      width:248px;
+      background:#fff;
+      border-right:1px solid var(--line);
+      padding:10px 10px 18px;
+    }
+    .brand-row{
+      display:flex;align-items:center;gap:12px;padding:10px 12px 18px;border-bottom:1px solid var(--line2);
+    }
+    .hamburger{font-size:24px;color:#111;line-height:1;padding:4px 8px}
+    .brand{
+      display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:#ff6b00;
+    }
+    .brand-badge{
+      width:28px;height:28px;border-radius:50%;background:#ff6b00;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;
+    }
+    .side-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:10px;color:#1d2433;cursor:pointer;margin:4px 0;text-decoration:none}
+    .side-item.active{background:var(--brand);color:#fff}
+    .side-item .ico{width:20px;text-align:center;opacity:.9}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .topbar{
+      height:74px;background:#fff;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 8px;
+    }
+    .top-left{display:flex;align-items:center;gap:18px}
+    .plan-select{
+      display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:252px;font-weight:600;color:#263145;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .top-right{display:flex;align-items:center;gap:20px;color:#222}
+    .icon-btn{font-size:20px;position:relative}
+    .dot{position:absolute;right:-3px;top:-1px;width:8px;height:8px;border-radius:50%;background:#ef4444}
+    .profile{display:flex;align-items:center;gap:12px;padding-left:8px;border-left:1px solid var(--line)}
+    .avatar{width:42px;height:42px;border-radius:50%;background:#0b66c3;color:#fff;display:grid;place-items:center;font-weight:700}
+    .profile .name{font-weight:700}
+    .profile .role{font-size:14px;color:var(--muted)}
+
+    .content{padding:24px 28px 24px}
+    .breadcrumb{font-size:14px;color:#5f6b7a;margin-bottom:8px}
+    .breadcrumb strong{color:#1f2a3d}
+    .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .title-wrap{display:flex;align-items:flex-start;gap:14px}
+    .title-ico{font-size:28px;color:var(--brand);line-height:1;padding-top:2px}
+    h1{margin:0 0 6px;font-size:27px;line-height:1.15}
+    .subtitle{margin:0;color:#475467;font-size:16px}
+    .head-actions{display:flex;gap:12px;align-items:center}
+    .btn{
+      border:1px solid var(--line);background:#fff;color:#1f2937;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.03);
+    }
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .btn.primary:hover{background:var(--brand-dark)}
+    .btn.small{padding:9px 12px;border-radius:10px;font-size:14px;font-weight:600}
+    .card{background:var(--panel);border:1px solid var(--line2);border-radius:18px;box-shadow:var(--shadow)}
+    .tabs{display:flex;gap:40px;align-items:flex-end;padding:0 8px;margin-bottom:14px}
+    .tab{padding:0 0 12px;font-weight:700;color:#3e485a;cursor:pointer;border-bottom:3px solid transparent}
+    .tab.active{color:var(--brand);border-color:var(--brand)}
+    .filters{padding:18px 20px;margin-bottom:14px}
+    .filter-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 320px;gap:16px;align-items:end}
+    .field label{display:block;font-size:14px;font-weight:700;color:#263145;margin:0 0 7px}
+    select,input[type=text],input[type=date],input[type=time],textarea{
+      width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 12px;font-size:15px;color:#1f2937;
+    }
+    textarea{min-height:84px;resize:vertical}
+    .search-wrap input{padding-left:16px}
+    .table-card{overflow:hidden}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1200px}
+    thead th{
+      background:#f8fbff;color:#1f2a3d;font-size:13px;text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap
+    }
+    tbody td{padding:12px 10px;border-bottom:1px solid var(--line2);vertical-align:top;font-size:14px;color:#182230}
+    tbody tr:hover{background:#fbfcff}
+    .wo-link{font-weight:800;color:#165dff;text-decoration:none;font-size:15px;display:block;margin-bottom:3px}
+    .subtext{color:#4f5b6c;line-height:1.35}
+    .pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;border:1px solid transparent;white-space:nowrap}
+    .pill.scheduled{color:var(--blue-text);background:var(--blue-pill)}
+    .pill.dispatched{color:#167a2f;background:var(--green-bg)}
+    .pill.progress{color:#b76a00;background:var(--orange-bg)}
+    .pill.paused{color:#b76a00;background:#fff1cc}
+    .pill.cancelled{color:var(--red);background:var(--red-bg)}
+    .pill.finished{color:#4f46e5;background:#efeefe}
+    .recur{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 14px;background:#f1f4f8;border:1px solid #e3e8ef;font-weight:700;white-space:nowrap}
+    .actions{display:flex;gap:8px;align-items:center}
+    .icon-action{
+      width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;font-size:17px
+    }
+    .icon-action:hover{background:#f8fafc}
+    .pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;color:#475467;font-size:15px}
+    .pager-right{display:flex;gap:16px;align-items:center}
+    .page-btn{width:38px;height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;display:grid;place-items:center;font-weight:700;cursor:pointer}
+    .page-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .muted{color:#667085}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(9,18,34,.48);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+    .modal-backdrop.show{display:flex}
+    .modal{background:#fff;border-radius:20px;box-shadow:0 28px 60px rgba(0,0,0,.2);max-width:960px;width:min(960px,100%);max-height:90vh;overflow:auto;border:1px solid #eef2f7}
+    .modal.small{max-width:500px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--line2)}
+    .modal-head h2{margin:0;font-size:24px}
+    .close-x{border:none;background:transparent;font-size:28px;cursor:pointer;color:#475467}
+    .modal-body{padding:22px 24px}
+    .detail-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}
+    .detail-card{border:1px solid var(--line2);border-radius:16px;padding:18px}
+    .section-title{margin:0 0 12px;font-size:18px}
+    .kv{display:grid;grid-template-columns:180px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:15px}
+    .kv:last-child{border-bottom:none}
+    .kv .k{color:#667085;font-weight:600}
+    .history{margin:0;padding-left:18px;color:#334155}
+    .history li{margin:10px 0}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .full{grid-column:1/-1}
+    .note{background:#f7faff;border:1px solid #d9e8ff;color:#23446e;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.45}
+    .modal-foot{padding:18px 24px;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:12px;background:#fff;position:sticky;bottom:0}
+    .confirm-msg{color:#475467;font-size:16px;line-height:1.55;margin:8px 0 0}
+    .warning-box{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:14px 16px;border-radius:12px;margin-top:14px}
+    .danger-box{background:#fff1f2;border:1px solid #fecdd3;color:#be123c;padding:14px 16px;border-radius:12px;margin-top:14px}
+    .state-row{display:flex;gap:8px;flex-wrap:wrap}
+    .success-toast{
+      position:fixed;right:24px;bottom:24px;background:#0f766e;color:#fff;padding:14px 18px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:60;font-weight:700
+    }
+    .success-toast.show{display:block}
+
+    /* Calendar retains the i4T Maintenance toolbar + mini-calendar layout. */
+    #calendarScreen[hidden],#scheduleScreen[hidden],#calendarPopover[hidden]{display:none!important}
+    .cal-shell{overflow:visible;border-radius:10px;position:relative}
+    .cal-toolbar{min-height:74px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid var(--line);background:#fafcff}
+    .cal-nav{display:flex;align-items:center;gap:12px}.cal-nav strong{font-size:20px;margin-left:8px;white-space:nowrap}
+    .cal-icon-btn{border:0;background:#eef6ff;color:#0874fa;border-radius:5px;padding:10px 13px;font-size:18px;cursor:pointer}
+    .cal-icon-btn:not(:first-child){background:transparent;font-size:28px;padding:2px 10px}
+    .cal-view-toggle{display:flex;gap:0;background:#f0f6ff;border-radius:4px;overflow:hidden}
+    .cal-view-toggle button{border:0;color:#1378f8;background:transparent;padding:12px 14px;font-weight:600;font-size:14px;cursor:pointer}
+    .cal-view-toggle button.selected{background:#0c75ff;color:#fff}
+    .cal-workspace{display:grid;grid-template-columns:310px minmax(0,1fr);position:relative;min-height:570px}
+    .cal-left{border-right:1px solid var(--line);padding:28px 20px;background:#fff}
+    .mini-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 24px}
+    .mini-nav strong{font-size:18px;white-space:nowrap}
+    .mini-nav button{border:0;background:transparent;font-size:23px;cursor:pointer;color:#6b7280}
+    .mini-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:13px;color:#697586;letter-spacing:11px;white-space:nowrap;margin-bottom:13px;overflow:hidden}
+    .mini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+    .mini-days button{border:0;background:transparent;width:33px;height:33px;border-radius:50%;margin:0 auto;cursor:pointer;font-size:14px}
+    .mini-days button.other{color:#b9c1cd}.mini-days button.selected{background:#0d75ff;color:#fff;font-weight:700}
+    .cal-filter-heading{font-size:17px;color:#8a95a6;padding-bottom:14px;border-bottom:1px solid #d1d5db;margin-top:36px;margin-bottom:17px}
+    .cal-filters{display:flex;flex-direction:column;gap:13px}.cal-filters label{display:flex;align-items:center;gap:9px;font-size:15px;cursor:pointer}
+    .cal-filters input{accent-color:#0b75fc;width:18px;height:18px;cursor:pointer}
+    .cal-filter-swatch{display:inline-block;width:10px;height:18px;border-radius:3px}
+    .cal-filter-swatch.scheduled{background:#2f87ef}.cal-filter-swatch.issued{background:#41b66b}.cal-filter-swatch.progress{background:#eda329}.cal-filter-swatch.completed{background:#9763cf}
+    .cal-filter-note{font-size:12px;color:#778398;line-height:1.55;margin-top:24px}
+    .cal-main{overflow:auto;height:610px;min-height:570px;min-width:0;background:#fff}
+    .cal-grid-week{display:grid;grid-template-columns:62px repeat(7,minmax(110px,1fr));min-width:850px}
+    .cal-grid-day{display:grid;grid-template-columns:66px minmax(200px,1fr)}
+    .cal-grid-head{height:88px;border-bottom:1px solid #dce2ea;border-left:1px solid #e8edf2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+    .cal-grid-head .weekday{font-size:15px;color:#364152}.cal-grid-head .daynum{font-size:23px}
+    .cal-grid-head.current .daynum{background:#117cf7;border-radius:50%;width:41px;height:41px;display:grid;place-items:center;color:#fff}
+    .cal-grid-head.weekend .weekday{color:#f04040}.cal-grid-head.weekend .daynum{color:#f04040}
+    .cal-time-label{height:60px;border-bottom:1px solid #e8edf2;text-align:right;padding:8px 8px 0 0;font-size:13px;color:#657386}
+    .cal-hour-cell{height:60px;border-bottom:1px solid #e8edf2;border-left:1px solid #e8edf2;position:relative;min-width:0}
+    .cal-week-event{position:absolute;top:3px;left:3px;right:3px;min-height:52px;border-left:4px solid;padding:6px 7px;font-size:12px;border-radius:4px;text-align:left;cursor:pointer;white-space:normal;line-height:1.22;color:#344054;overflow:hidden}
+    .cal-week-event strong{font-size:12px;display:block;margin-bottom:2px}.cal-week-event small{display:block;font-size:11px}
+    .cal-event-scheduled{background:#e5f1ff;border-color:#1d81f6}.cal-event-issued{background:#e5f7e9;border-color:#2fa558}.cal-event-progress{background:#fff2d5;border-color:#eda329}.cal-event-completed{background:#f0e6ff;border-color:#9360d2}
+    .cal-month-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));min-width:790px}
+    .cal-month-head{border-right:1px solid #e3e9f0;border-bottom:1px solid #e3e9f0;text-align:center;padding:16px;color:#475467;font-weight:700}
+    .cal-month-day{height:112px;min-width:0;border-right:1px solid #e5eaf1;border-bottom:1px solid #e5eaf1;padding:7px;overflow:auto}
+    .cal-month-day.off{background:#fafbfc}.cal-month-day b{display:block;font-size:13px;margin-bottom:7px}.cal-month-day.off b{color:#bbc1cc}
+    .cal-month-event{display:block;border:0;border-left:3px solid;margin:3px 0;padding:5px 6px;width:100%;text-align:left;border-radius:3px;font-size:11px;cursor:pointer;line-height:1.25;white-space:normal}
+    .cal-timeline-list{padding:18px 24px}.cal-timeline-row{width:100%;display:flex;align-items:center;gap:18px;background:#fff;border:0;border-bottom:1px solid #e2e7ef;padding:13px 8px;cursor:pointer;text-align:left}
+    .cal-timeline-row time{font-size:13px;color:#697586;width:170px;flex:none}.cal-timeline-row .cal-timeline-event{padding:9px 12px;border-left:4px solid;border-radius:5px;flex:1}
+    .cal-popover{position:absolute;top:190px;right:14px;z-index:5;width:375px;max-width:calc(100% - 325px);background:#fff;border:1px solid #e1e7ef;border-radius:8px;box-shadow:0 8px 24px #0002;overflow:hidden}
+    .cal-popover-head{display:flex;justify-content:space-between;align-items:center;background:#0879fa;color:#fff;font-weight:700;font-size:17px;padding:14px 17px}
+    .cal-popover-head button{border:0;background:transparent;color:#fff;font-size:24px;cursor:pointer}
+    .cal-popover-body{padding:15px 17px}.cal-popover-body .kv{grid-template-columns:130px 1fr;font-size:13px;padding:9px 0}
+    .cal-popover-body .k{font-weight:600}.cal-popover-body h3{margin:0 0 12px;font-size:17px}
+    .cal-popover-actions{border-top:1px solid #e5eaf0;padding:12px 17px;text-align:right}
+    .cal-popover-actions button{background:#fff;color:#0672ed;border:1px solid #c3dcff;border-radius:7px;padding:9px 14px;font-weight:700;cursor:pointer}
+    .cal-empty{padding:28px;color:#667085}
+    @media(max-width:1100px){.cal-workspace{grid-template-columns:230px minmax(0,1fr)}.cal-left{padding:20px 10px}.cal-popover{max-width:calc(100% - 250px)}}
+    @media (max-width:1280px){
+      .filter-grid{grid-template-columns:repeat(3,minmax(0,1fr)) 280px}
+    }
+
+    .cal-filter-swatch.created{background:#1983f9}.cal-filter-swatch.scheduled{background:#ff9e23}
+    .cal-event-created{background:#e4f0ff!important;border-color:#1382f6!important;color:#215183!important}
+    .cal-event-scheduled{background:#fff0d9!important;border-color:#ff9b20!important;color:#85500c!important}
+    .cal-week-event{min-height:0;height:120px;top:0;z-index:2;overflow:hidden;box-shadow:0 2px 4px #0001}
+    .cal-week-event:hover{z-index:4;box-shadow:0 6px 16px #0002}
+    .cal-hour-cell{overflow:visible}
+    .cal-hour-cell .cal-week-event{position:absolute}
+    .cal-month-event.cal-event-created{background:#e4f0ff}
+    .cal-month-event.cal-event-scheduled{background:#fff0d9}
+    .cal-timeline-event.cal-event-created{background:#e4f0ff}
+    .cal-timeline-event.cal-event-scheduled{background:#fff0d9}
+    .demo-strip{background:#f3f8ff;border:1px solid #cfe2fb;border-radius:10px;margin-bottom:14px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:#344054;flex-wrap:wrap}
+    .demo-strip span{color:#657586}.demo-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .demo-audit{background:#fff;border:1px solid #dfe7f0;border-radius:10px;padding:11px 15px;margin-bottom:13px;font-size:13px;color:#344054}.demo-audit strong{display:block;margin-bottom:5px}.demo-audit #demoAuditItems{color:#475467;line-height:1.6}.demo-audit .audit-line{border-top:1px solid #eef1f6;padding:5px 0}.demo-audit .audit-line:first-child{border-top:none}
+    .demo-actions button{background:#fff;border:1px solid #bdd5f4;border-radius:7px;color:#1267bb;padding:7px 10px;cursor:pointer;font-weight:600;font-size:12px}
+    .demo-actions button:hover{background:#e9f4ff}
+    .cal-popover{width:410px}.cal-popover-body .kv{grid-template-columns:165px 1fr}
+    .schedule-hint{font-size:11px;color:#687587;display:block;margin-top:4px}
+    .prototype-mark{font-size:11px;letter-spacing:.04em;font-weight:700;color:#1873cb;text-transform:uppercase}
+    .status-note{display:inline-block;border-radius:5px;background:#eaf2ff;color:#2256a0;padding:5px 8px;font-size:12px;font-weight:600}
+    .status-note.orange{background:#fff0d9;color:#87530d}
+    .side-parent{display:flex;align-items:center;gap:14px;padding:12px 16px;background:#f1f2f4;color:#17202f;font-weight:700;border-radius:7px;margin-top:4px}
+    .side-parent .ico{width:20px;text-align:center}.side-chevron{margin-left:auto;font-size:15px}
+    .side-subnav{padding:3px 4px 4px 18px;display:flex;flex-direction:column;gap:3px}
+    .side-subitem{display:block;text-decoration:none;color:#505e70;font-size:14px;padding:8px 18px;border-radius:6px}
+    .side-subitem.active{background:#1479ff;color:#fff;font-weight:700}
+    .future-table{min-width:1380px}.future-table th{white-space:normal;min-width:74px}.future-table th:nth-child(5){min-width:180px}.future-table th:last-child{min-width:156px}
+    .future-table tbody td{font-size:13px;line-height:1.45}.future-table .wo-link{font-size:13px}.future-table .icon-action{width:30px;height:30px;font-size:14px;border-radius:4px}
+    .filter-grid{grid-template-columns:repeat(4,minmax(0,1fr)) 320px}
+    .all-table-toolbar{background:#0d75f8;display:flex;justify-content:space-between;align-items:center;padding:12px;gap:20px}
+    .all-table-toolbar input[type=text]{max-width:280px;border-radius:24px;padding:10px 18px}
+    .all-choice{background:#fff;border-radius:30px;display:flex;gap:16px;padding:7px 12px;white-space:nowrap;font-size:14px}
+    .all-choice label{display:flex;align-items:center;gap:5px;cursor:pointer}.all-choice input{accent-color:#1479ff}
+    .all-wo-table{min-width:1230px}.all-wo-table th{background:#f5f5f5;border-right:1px solid #e4e7eb}
+    .all-wo-table td{background:#fff;border-right:1px solid #e4e7eb;color:#565d67;font-size:13px}.all-wo-table tr:nth-child(even) td{background:#f6f6f6}
+    .all-wo-table .actions{gap:5px}.all-wo-table .icon-action{width:28px;height:28px;border-radius:4px;font-size:14px}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <div class="hamburger">☰</div>
+      <div class="brand"><div class="brand-badge">i4T</div><div>Maintenance</div></div>
+    </div>
+    <a class="side-item" href="#"><span class="ico">⌂</span><span>Home</span></a>
+    <div class="side-parent"><span class="ico">▣</span><span>Work Orders</span><span class="side-chevron">⌃</span></div>
+    <div class="side-subnav">
+      <a class="side-subitem" href="#all" id="navAll">All</a>
+      <a class="side-subitem active" href="#schedules" id="navSchedules">Future &amp; Recurring</a>
+    </div>
+    <a class="side-item" href="#calendar" id="navCalendar"><span class="ico">🗓️</span><span>Calendar</span></a>
+    <a class="side-item" href="#"><span class="ico">👥</span><span>Suppliers</span></a>
+    <a class="side-item" href="#"><span class="ico">🏢</span><span>Properties &amp; Plans</span></a>
+    <a class="side-item" href="#"><span class="ico">🛡</span><span>Compliance</span></a>
+    <a class="side-item" href="#"><span class="ico">📊</span><span>Reports</span></a>
+    <a class="side-item" href="#"><span class="ico">⚙</span><span>Settings</span></a>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="top-left">
+        <div class="plan-select"><span>🏢</span><span>Harbourview Strata</span><span style="margin-left:auto">▾</span></div>
+      </div>
+      <div class="top-right">
+        <div class="icon-btn">⌕</div>
+        <div class="icon-btn">🔔<span class="dot"></span></div>
+        <div class="icon-btn">?</div>
+        <div class="profile">
+          <div class="avatar">WS</div>
+          <div>
+            <div class="name">i4T Support</div>
+            <div class="role">Administrator | Strata Manager</div>
+          </div>
+          <div style="padding-left:8px">▾</div>
+        </div>
+      </div>
+    </div>
+    <section class="content" id="scheduleScreen">
+      <div class="breadcrumb">Home &nbsp;›&nbsp; <strong>Future &amp; Recurring Work Orders</strong></div>
+      <div class="page-head">
+        <div class="title-wrap">
+          <div class="title-ico">🗓</div>
+          <div>
+            <h1>Future &amp; Recurring Work Orders</h1>
+            <p class="subtitle">Plan and automate maintenance work orders with one-off future schedules or recurring maintenance.</p>
+          </div>
+        </div>
+        <div class="head-actions">
+          <button class="btn">⇩&nbsp; Export</button>
+        </div>
+      </div>
+
+      <div class="card filters">
+        <div class="filter-grid">
+          <div class="field">
+            <label>Property / Strata Plan</label>
+            <select id="filterProperty"><option value="">All Properties</option></select>
+          </div>
+          <div class="field">
+            <label>Service Category</label>
+            <select id="filterCategory"><option value="">All Service Categories</option></select>
+          </div>
+          <div class="field">
+            <label>Contractor</label>
+            <select id="filterContractor"><option value="">All Contractors</option></select>
+          </div>
+          <div class="field">
+            <label>Recurrence Frequency</label>
+            <select id="filterFrequency">
+              <option value="">All Frequencies</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+              <option>Quarterly</option>
+              <option>Half-Yearly</option>
+              <option>Annually</option>
+              <option>One-off</option>
+            </select>
+          </div>
+          <div class="field search-wrap">
+            <label>&nbsp;</label>
+            <input id="searchInput" type="text" placeholder="Search by WO No., title or property..." />
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-wrap">
+          <table class="future-table">
+            <thead><tr>
+              <th>Recurring WO ID</th>
+              <th>Task ID</th>
+              <th>Creation Date</th>
+              <th>Recurrence Frequency</th>
+              <th>Description</th>
+              <th>Strata Plan Name</th>
+              <th>Strata Plan Number</th>
+              <th>Issued By</th>
+              <th>Previous Occurrence</th>
+              <th>Next Occurrence</th>
+              <th>Final Occurrence</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div id="recordInfo">Showing 1 – 8 of 12 schedules</div>
+          <div class="pager-right">
+            <div>Rows per page:&nbsp; <strong>10</strong></div>
+            <div class="page-btn">‹</div>
+            <div class="page-btn active">1</div>
+            <div class="page-btn">2</div>
+            <div class="page-btn">›</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="content" id="allWorkOrdersScreen" hidden>
+      <div class="breadcrumb">Home &nbsp;›&nbsp; <strong>Work Orders</strong></div>
+      <div class="page-head"><div class="title-wrap"><div class="title-ico">▣</div><div><h1>Work Orders</h1><p class="subtitle">Work Orders &amp; Quote Requests</p></div></div><div class="head-actions"><button class="btn" type="button" id="allExport">⇩ Export</button><button class="btn primary" type="button" id="allManageTable">▤ Manage Table</button></div></div>
+      <div class="card table-card">
+        <div class="all-table-toolbar"><div class="all-choice"><label><input type="radio" name="allRecordType" value="wo" checked> Work Orders</label><label><input type="radio" name="allRecordType" value="qr"> Quote Requests</label></div><input id="allWOSearch" type="text" placeholder="⌕ Search" aria-label="Search Work Orders"></div>
+        <div class="table-wrap"><table class="all-wo-table"><thead><tr><th>Task ID</th><th>Creation Date</th><th>Completed Date</th><th>Status</th><th>WO Number</th><th>Description</th><th>Strata Plan Name</th><th>Invoice Status</th><th>Actions</th></tr></thead><tbody id="allWOTableBody"></tbody></table></div>
+        <div class="pagination"><span id="allWOTableCount">Showing 1 to 10 of 10 entries</span><span>‹ &nbsp; <strong>1</strong> &nbsp; 2 &nbsp; 3 &nbsp; › &nbsp; Show 10 Entries</span></div>
+      </div>
+    </section>
+    <section class="content" id="calendarScreen" hidden>
+      <div class="breadcrumb">Home &nbsp;›&nbsp; <strong>Calendar</strong></div>
+      <div class="page-head">
+        <div class="title-wrap"><div class="title-ico">▦</div><div><h1>Calendar</h1><p class="subtitle">Regular, Future and Recurring Work Orders — Created and Scheduled only.</p></div></div>
+      </div>
+      <div class="demo-strip"><div><strong>Prototype scenarios</strong><span> Simulate i4T Business scheduling, midnight release and compliance notifications (not live product actions).</span></div><div class="demo-actions"><button id="demoRegular">Schedule regular WO</button><button id="demoReschedule">Reschedule appointment</button><button id="demoRelease">Release recurring WO</button><button id="demoRecurringAppointment">Schedule released WO</button><button id="demoCompliance">Compliance failure</button><button id="demoReminder">7-day reminder</button><button id="demoReset">Reset demo</button></div></div>
+      <div class="demo-audit" id="demoAudit" role="status" aria-live="polite"><strong>Integration activity (simulation only)</strong><div id="demoAuditItems">No simulated events yet. Select a prototype scenario above.</div></div>
+      <div class="cal-shell card">
+        <div class="cal-toolbar">
+          <div class="cal-nav"><button class="cal-icon-btn" id="calToday">▦ &nbsp; TODAY</button><button class="cal-icon-btn" id="calPrev" aria-label="Previous period">‹</button><button class="cal-icon-btn" id="calNext" aria-label="Next period">›</button><strong id="calTitle">November 2026</strong></div>
+          <div class="cal-view-toggle"><button data-cal-view="day">DAY</button><button class="selected" data-cal-view="week">WEEK</button><button data-cal-view="month">MONTH</button><button data-cal-view="timeline">TIMELINE</button></div>
+        </div>
+        <div class="cal-workspace">
+          <aside class="cal-left">
+            <div class="mini-nav"><button id="miniPrev" aria-label="Previous month">‹</button><strong id="miniTitle">November 2026</strong><button id="miniNext" aria-label="Next month">›</button></div>
+            <div class="mini-weekdays">S M T W T F S</div>
+            <div id="miniDays" class="mini-days"></div>
+            <div class="cal-filter-heading">Filter events</div>
+            <div class="cal-filters" id="calendarFilters">
+              <label><input type="checkbox" value="Created" checked><span class="cal-filter-swatch created"></span> Created</label>
+              <label><input type="checkbox" value="Scheduled" checked><span class="cal-filter-swatch scheduled"></span> Scheduled</label>
+            </div>
+            <p class="cal-filter-note">Created = blue. Planned or supplier-confirmed appointment = orange. Every event is displayed as a two-hour block.</p>
+          </aside>
+          <section class="cal-main"><div id="calendarGrid"></div></section>
+          <aside class="cal-popover" id="calendarPopover" hidden aria-live="polite"></aside>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="viewModal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>View Schedule</h2>
+      <button class="close-x" onclick="closeModal('viewModal')">×</button>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('viewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="editModal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Edit Schedule</h2>
+      <button class="close-x" onclick="closeModal('editModal')">×</button>
+    </div>
+    <form id="editForm">
+      <div class="modal-body">
+        <div class="note">This edit applies to future, unissued occurrences only. Already issued Work Orders remain unchanged.</div>
+        <div class="form-grid" style="margin-top:16px">
+          <div class="field"><label>Recurring WO ID (read-only)</label><input id="editRecurringId" type="text" readonly></div>
+          <div class="field"><label>Task ID (read-only)</label><input id="editTaskId" type="text" readonly></div>
+          <div class="field full">
+            <label>Description</label>
+            <textarea id="editDescription"></textarea>
+          </div>
+          <div class="field">
+            <label>Property / Strata Plan</label>
+            <input id="editProperty" type="text" readonly />
+          </div>
+          <div class="field">
+            <label>Contact Person</label>
+            <input id="editContact" type="text" />
+          </div>
+          <div class="field">
+            <label>Service Category</label>
+            <input id="editCategory" type="text" />
+          </div>
+          <div class="field">
+            <label>Contractor</label>
+            <input id="editContractor" type="text" />
+          </div>
+          <div class="field">
+            <label>Requested Service Date</label>
+            <input id="editDate" type="date" />
+          </div>
+          <div class="field">
+            <label>Requested Start Time</label>
+            <input id="editTime" type="time" />
+          </div>
+          <div class="field">
+            <label>Recurrence Frequency</label>
+            <select id="editFrequency">
+              <option>Weekly</option><option>Monthly</option><option>Quarterly</option><option>Half-Yearly</option><option>Annually</option><option>One-off</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>End Date</label>
+            <input id="editEndDate" type="date" />
+          </div>
+        </div>
+        <div class="warning-box">If the contractor is changed, the future Work Orders will still be subject to compliance validation at midnight on each scheduled date before a WO is created and issued.</div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn" onclick="closeModal('editModal')">Cancel</button>
+        <button type="submit" class="btn primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-backdrop">
+  <div class="modal small">
+    <div class="modal-head">
+      <h2 id="confirmTitle">Confirm action</h2>
+      <button class="close-x" onclick="closeModal('confirmModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="confirmPills" class="state-row"></div>
+      <p id="confirmText" class="confirm-msg"></p>
+      <div id="confirmAlert"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('confirmModal')">No, go back</button>
+      <button class="btn primary" id="confirmYes">Yes, continue</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="success-toast"></div>
+
+<script>
+const schedules = [
+  {
+    id:'R00208', taskId:'8462399', kind:'Recurring', description:'Lift Preventive Maintenance', property:'SP 74330', propertyName:'Harbourview Apartments', category:'Lift Maintenance', contractor:'LiftCo Services', contact:'Daniel Reeves', occurrence:'2026-11-12', time:'09:00', recurrence:'Monthly', status:'Scheduled', endDate:'2027-11-12', createdBy:'i4T Support', notes:'Monthly preventive service for all passenger lifts.', prev:'12/10/2026 9:00 AM', next:'12/11/2026 9:00 AM', final:'12/11/2027 9:00 AM', history:[
+      '12 Oct 2026 – WO created and issued at 12:00 am; completed same day.',
+      '12 Nov 2026 – Upcoming scheduled occurrence.',
+      '12 Dec 2026 – Future occurrence preview.'
+    ], linkedWos:[
+      'WO-846590 – Completed', 'WO-846721 – Completed'
+    ]
+  },
+  {
+    id:'R00209', taskId:'8467592', kind:'Recurring', description:'Fire System Inspection', property:'SP 61230', propertyName:'Rivermere Towers', category:'Fire Systems', contractor:'FireSafe Pty Ltd', contact:'Effie Sotiriadis', occurrence:'2026-11-17', time:'10:00', recurrence:'Quarterly', status:'Scheduled', endDate:'2028-11-17', createdBy:'i4T Support', notes:'Quarterly inspection of fire panel, extinguishers and exits.', prev:'17/08/2026 10:00 AM', next:'17/11/2026 10:00 AM', final:'17/11/2028 10:00 AM', history:[
+      '17 Aug 2026 – WO created and issued at 12:00 am; completed.',
+      '17 Nov 2026 – Upcoming scheduled occurrence.'
+    ], linkedWos:['WO-845211 – Completed']
+  },
+  {
+    id:'R00210', taskId:'8467791', kind:'Future / One-off', description:'Roof Gutter Cleaning', property:'SP 49716', propertyName:'Lakeside Residences', category:'Gutter Cleaning', contractor:'CleanFlow Services', contact:'Kierstin Ferrao', occurrence:'2026-11-21', time:'08:00', recurrence:'One-off', status:'Scheduled', endDate:'2026-11-21', createdBy:'i4T Support', notes:'One-off future clean before storm season.', prev:'-', next:'21/11/2026 8:00 AM', final:'21/11/2026 8:00 AM', history:[
+      '21 Nov 2026 – Future one-off occurrence scheduled.'
+    ], linkedWos:[]
+  },
+  {
+    id:'R00211', taskId:'8468600', kind:'Recurring', description:'Pest Control', property:'SP 58906', propertyName:'Parkview Strata', category:'Pest Control', contractor:'EcoPest Control', contact:'Tony Jerome', occurrence:'2026-11-24', time:'09:00', recurrence:'Half-Yearly', status:'Dispatched', endDate:'2028-11-24', createdBy:'i4T Support', notes:'Common-area pest treatment.', prev:'24/05/2026 9:00 AM', next:'24/11/2026 9:00 AM', final:'24/11/2028 9:00 AM', history:[
+      '24 Nov 2026 – WO created and issued at 12:00 am to supplier.',
+      'Supplier received the WO in i4T Business.'
+    ], linkedWos:['WO-846900 – Issued']
+  },
+  {
+    id:'R00212', taskId:'8469005', kind:'Recurring', description:'Air Conditioning Service', property:'SP 74330', propertyName:'Harbourview Apartments', category:'Air Conditioning', contractor:'CoolCare Solutions', contact:'Daniel Reeves', occurrence:'2026-11-26', time:'09:00', recurrence:'Annually', status:'In Progress', endDate:'2029-11-26', createdBy:'i4T Support', notes:'Annual HVAC servicing.', prev:'26/11/2025 9:00 AM', next:'26/11/2026 9:00 AM', final:'26/11/2029 9:00 AM', history:[
+      '26 Nov 2026 – WO created and issued at 12:00 am.',
+      'Supplier updated WO status to In Progress in i4T Business.'
+    ], linkedWos:['WO-847010 – In Progress']
+  },
+  {
+    id:'R00213', taskId:'8469412', kind:'Recurring', description:'Landscaping Maintenance', property:'SP 49716', propertyName:'Lakeside Residences', category:'Landscaping', contractor:'GreenSpace Pty Ltd', contact:'Harina N.', occurrence:'2026-12-01', time:'09:00', recurrence:'Weekly', status:'Paused', endDate:'2027-03-01', createdBy:'i4T Support', notes:'Weekly grounds maintenance. Schedule currently paused.', prev:'24/11/2026 9:00 AM', next:'01/12/2026 9:00 AM', final:'01/03/2027 9:00 AM', history:[
+      '24 Nov 2026 – Schedule paused by i4T Support.',
+      'No new WOs will be created while paused.'
+    ], linkedWos:['WO-846812 – Completed']
+  },
+  {
+    id:'R00214', taskId:'8470071', kind:'Recurring', description:'Pool & Spa Service', property:'SP 61230', propertyName:'Rivermere Towers', category:'Pool Maintenance', contractor:'AquaServe', contact:'Effie Sotiriadis', occurrence:'2026-12-03', time:'08:00', recurrence:'Monthly', status:'Scheduled', endDate:'2027-12-03', createdBy:'i4T Support', notes:'Monthly balance and safety check.', prev:'03/11/2026 8:00 AM', next:'03/12/2026 8:00 AM', final:'03/12/2027 8:00 AM', history:['03 Nov 2026 – WO created and issued; completed.'], linkedWos:['WO-846411 – Completed']
+  },
+  {
+    id:'R00215', taskId:'8471099', kind:'Future / One-off', description:'Building Pressure Wash', property:'SP 58906', propertyName:'Parkview Strata', category:'General Maintenance', contractor:'PropertyCare Group', contact:'Tony Jerome', occurrence:'2026-12-05', time:'09:00', recurrence:'One-off', status:'Scheduled', endDate:'2026-12-05', createdBy:'i4T Support', notes:'External common-area washdown.', prev:'-', next:'05/12/2026 9:00 AM', final:'05/12/2026 9:00 AM', history:['05 Dec 2026 – Future one-off occurrence scheduled.'], linkedWos:[]
+  }
+];
+
+const creationDates=['25/06/2025 12:20 PM','30/06/2025 12:31 PM','04/07/2025 9:10 AM','05/07/2025 4:42 PM','09/07/2025 8:15 AM','11/07/2025 10:20 AM','16/07/2025 1:05 PM','18/07/2025 11:18 AM'];
+schedules.forEach((item,index)=>{item.createdDate=creationDates[index];});
+let currentTab='all';
+let currentAction=null;
+let currentScheduleId=null;
+
+const body=document.getElementById('tableBody');
+const propertySel=document.getElementById('filterProperty');
+const categorySel=document.getElementById('filterCategory');
+const contractorSel=document.getElementById('filterContractor');
+const frequencySel=document.getElementById('filterFrequency');
+const searchInput=document.getElementById('searchInput');
+
+function uniqueValues(key){ return [...new Set(schedules.map(x=>x[key]))].sort(); }
+function populateFilter(select, values){ values.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o);}); }
+populateFilter(propertySel, uniqueValues('propertyName'));
+populateFilter(categorySel, uniqueValues('category'));
+populateFilter(contractorSel, uniqueValues('contractor'));
+
+[propertySel,categorySel,contractorSel,frequencySel,searchInput].forEach(el=>el.addEventListener('input',renderTable));
+
+function statusClass(status){
+  switch(status){
+    case 'Scheduled': return 'scheduled';
+    case 'Dispatched': return 'dispatched';
+    case 'In Progress': return 'progress';
+    case 'Paused': return 'paused';
+    case 'Cancelled': return 'cancelled';
+    case 'Completed': return 'finished';
+    default:return 'scheduled';
+  }
+}
+function formatDisplayDate(date,time){
+  const dt=new Date(date+'T'+time);
+  return dt.toLocaleDateString('en-AU',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})+'<br>'+dt.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'});
+}
+function getVisible(){
+  const q=searchInput.value.toLowerCase().trim();
+  return schedules.filter(s=>{
+    if(currentTab==='recurring' && s.kind!=='Recurring') return false;
+    if(currentTab==='future' && s.kind==='Recurring') return false;
+    if(propertySel.value && s.propertyName!==propertySel.value) return false;
+    if(categorySel.value && s.category!==categorySel.value) return false;
+    if(contractorSel.value && s.contractor!==contractorSel.value) return false;
+    if(frequencySel.value && s.recurrence!==frequencySel.value) return false;
+    if(q){
+      const hay=[s.id,s.description,s.propertyName,s.property,s.contractor,s.category].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  })
+}
+function renderTable(){
+  const rows=getVisible();
+  body.innerHTML='';
+  rows.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><a href="#" class="wo-link" data-open-id="${s.id}">${s.id}</a></td>
+      <td>${escapeHtml(s.taskId)}</td>
+      <td>${escapeHtml(s.createdDate||'25/06/2025 12:20 PM')}</td>
+      <td>${s.recurrence==='One-off'?'-':escapeHtml(s.recurrence)}</td>
+      <td>${escapeHtml(s.description)}</td>
+      <td>${escapeHtml(s.propertyName)}</td>
+      <td>${escapeHtml(s.property.replace('SP ',''))}</td>
+      <td>${escapeHtml(s.createdBy)}</td>
+      <td>${escapeHtml(s.prev)}</td>
+      <td>${s.status==='Cancelled'?'-':escapeHtml(s.next)}</td>
+      <td>${s.status==='Cancelled'?'-':escapeHtml(s.final)}</td>
+      <td><div class="actions">
+        <button class="icon-action" title="View" aria-label="View ${s.id}" data-action="view" data-id="${s.id}">👁</button>
+        ${s.status==='Cancelled' ? '' : `
+        <button class="icon-action" title="Edit" aria-label="Edit ${s.id}" data-action="edit" data-id="${s.id}">✎</button>
+        ${s.kind==='Recurring' && ['Scheduled','Paused','Dispatched','In Progress'].includes(s.status) ? `
+        <button class="icon-action" title="${s.status==='Paused'?'Resume':'Pause'}" aria-label="${s.status==='Paused'?'Resume':'Pause'} ${s.id}" data-action="${s.status==='Paused'?'resume':'pause'}" data-id="${s.id}">${s.status==='Paused'?'▶':'⏸'}</button>` : ''}
+        <button class="icon-action" title="Cancel" aria-label="Cancel ${s.id}" data-action="cancel" data-id="${s.id}">⊗</button>
+        `}
+      </div></td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('recordInfo').textContent = rows.length ? `Showing 1 – ${rows.length} of ${rows.length} schedules` : 'No schedules found';
+  body.querySelectorAll('button[data-action]').forEach(btn=>btn.addEventListener('click',handleAction));
+  body.querySelectorAll('[data-open-id]').forEach(a=>a.onclick=(e)=>{e.preventDefault();renderViewModal(findSchedule(a.dataset.openId));openModal('viewModal')});
+}
+
+function findSchedule(id){ return schedules.find(s=>s.id===id); }
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+function renderViewModal(s){
+  const nextLabel = s.status==='Scheduled' || s.status==='Paused' ? 'View type' : 'WO outcome';
+  document.getElementById('viewBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h3 class="section-title">Schedule details</h3>
+        <div class="kv"><div class="k">Recurring WO ID</div><div>${s.id}</div></div>
+        <div class="kv"><div class="k">Task ID</div><div>${s.taskId}</div></div>
+        <div class="kv"><div class="k">Schedule type</div><div>${s.kind}</div></div>
+        <div class="kv"><div class="k">Description</div><div>${s.description}</div></div>
+        <div class="kv"><div class="k">Status</div><div><span class="pill ${statusClass(s.status)}">${s.status}</span></div></div>
+        <div class="kv"><div class="k">Service category</div><div>${s.category}</div></div>
+        <div class="kv"><div class="k">Property / Plan</div><div>${s.property} – ${s.propertyName}</div></div>
+        <div class="kv"><div class="k">Contact person</div><div>${s.contact}</div></div>
+        <div class="kv"><div class="k">Contractor</div><div>${s.contractor}</div></div>
+        <div class="kv"><div class="k">Requested service date</div><div>${new Date(s.occurrence+'T'+s.time).toLocaleDateString('en-AU',{weekday:'long', day:'numeric', month:'long', year:'numeric'})}</div></div>
+        <div class="kv"><div class="k">Requested start time</div><div>${new Date(s.occurrence+'T'+s.time).toLocaleTimeString('en-AU',{hour:'numeric', minute:'2-digit'})}</div></div>
+        <div class="kv"><div class="k">Recurrence</div><div>${s.recurrence}</div></div>
+        <div class="kv"><div class="k">End date</div><div>${s.endDate}</div></div>
+        <div class="kv"><div class="k">Created by</div><div>${s.createdBy}</div></div>
+      </div>
+      <div style="display:grid; gap:22px">
+        <div class="detail-card">
+          <h3 class="section-title">Occurrence summary</h3>
+          <div class="kv"><div class="k">Previous occurrence</div><div>${s.prev}</div></div>
+          <div class="kv"><div class="k">Next occurrence</div><div>${s.next}</div></div>
+          <div class="kv"><div class="k">Final occurrence</div><div>${s.final}</div></div>
+          <div class="kv"><div class="k">Notes</div><div>${s.notes}</div></div>
+        </div>
+        <div class="detail-card">
+          <h3 class="section-title">Occurrence history</h3>
+          <ul class="history">${s.history.map(h=>`<li>${h}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-card">
+          <h3 class="section-title">Generated Work Orders</h3>
+          ${s.linkedWos.length ? `<ul class="history">${s.linkedWos.map(w=>`<li>${w}</li>`).join('')}</ul>` : '<div class="muted">Not yet created</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function fillEdit(s){
+  currentScheduleId=s.id;
+  document.getElementById('editRecurringId').value=s.id;
+  document.getElementById('editTaskId').value=s.taskId;
+  document.getElementById('editDescription').value=s.description;
+  document.getElementById('editProperty').value=`${s.property} – ${s.propertyName}`;
+  document.getElementById('editContact').value=s.contact;
+  document.getElementById('editCategory').value=s.category;
+  document.getElementById('editContractor').value=s.contractor;
+  document.getElementById('editDate').value=s.occurrence;
+  document.getElementById('editTime').value=s.time;
+  document.getElementById('editFrequency').value=s.recurrence;
+  document.getElementById('editFrequency').disabled=s.kind!=='Recurring';
+  document.getElementById('editEndDate').value=s.endDate;
+}
+
+document.getElementById('editForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const s=findSchedule(currentScheduleId);
+  if(!s || s.status==='Cancelled') { closeModal('editModal'); return; }
+  const d=document.getElementById('editDate').value, until=document.getElementById('editEndDate').value;
+  if(!d||!until||until<d){alert('End date must be on or after the requested service date.');return;}
+  s.description=document.getElementById('editDescription').value.trim();
+  s.contact=document.getElementById('editContact').value.trim();
+  s.category=document.getElementById('editCategory').value.trim();
+  s.contractor=document.getElementById('editContractor').value.trim();
+  s.occurrence=document.getElementById('editDate').value;
+  s.time=document.getElementById('editTime').value;
+  if(s.kind==='Recurring') s.recurrence=document.getElementById('editFrequency').value;
+  s.endDate=document.getElementById('editEndDate').value;
+  s.notes='Updated for future unissued occurrences.';
+  s.next=`${s.occurrence.split('-').reverse().join('/')} ${timeDisplay(s.time)}`;
+  s.history.unshift(`${new Date().toLocaleDateString('en-AU')} – Schedule updated by i4T Support.`);
+  closeModal('editModal');
+  renderTable();
+  showToast(`${s.id} updated successfully.`);
+});
+
+function handleAction(e){
+  const action=e.currentTarget.dataset.action;
+  const id=e.currentTarget.dataset.id;
+  const s=findSchedule(id);
+  // Enforce the same action permissions as the visible controls.
+  if(!s) return;
+  if(s.status==='Cancelled' && action!=='view') return;
+  if(['pause','resume'].includes(action) && s.kind!=='Recurring') return;
+  if(action==='pause' && s.status==='Paused') return;
+  if(action==='resume' && s.status!=='Paused') return;
+  currentAction=action;
+  currentScheduleId=id;
+  if(action==='view'){
+    renderViewModal(s);
+    openModal('viewModal');
+  } else if(action==='edit'){
+    fillEdit(s);
+    openModal('editModal');
+  } else if(action==='pause'){
+    openConfirm('Pause Schedule', s, `Pause ${s.id}? Future recurring occurrences will not generate Work Orders while the schedule is paused.`, 'This will not affect already issued Work Orders. Missed occurrences will not be backfilled on resume.', ()=>{
+      s.status='Paused';
+      s.history.unshift(`${new Date().toLocaleDateString('en-AU')} – Schedule paused by i4T Support.`);
+      closeModal('confirmModal'); renderTable(); showToast(`${s.id} has been paused.`);
+    });
+  } else if(action==='resume'){
+    openConfirm('Resume Schedule', s, `Resume ${s.id}? The schedule will reactivate for the next eligible future occurrence.`, 'Any occurrences that fell due while paused will not be created retrospectively.', ()=>{
+      s.status='Scheduled';
+      s.resumeFrom=isoLocal(new Date());
+      s.history.unshift(`${new Date().toLocaleDateString('en-AU')} – Schedule resumed by i4T Support.`);
+      closeModal('confirmModal'); renderTable(); showToast(`${s.id} has been resumed.`);
+    });
+  } else if(action==='cancel'){
+    openConfirm('Cancel Schedule', s, `Cancel ${s.id}? All remaining future occurrences will be stopped permanently.`, 'This action cannot be undone from the schedule screen. Historical and already issued Work Orders will remain available for audit.', ()=>{
+      s.status='Cancelled';
+      s.history.unshift(`${new Date().toLocaleDateString('en-AU')} – Schedule cancelled by i4T Support.`);
+      closeModal('confirmModal'); renderTable(); showToast(`${s.id} has been cancelled.`);
+    }, true);
+  }
+}
+
+function openConfirm(title,s,text,alert,yesFn,isDanger=false){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmText').textContent=text;
+  document.getElementById('confirmAlert').innerHTML = `<div class="${isDanger?'danger-box':'warning-box'}">${alert}</div>`;
+  document.getElementById('confirmPills').innerHTML = `<span class="recur">${s.id}</span><span class="pill ${statusClass(s.status)}">Current status: ${s.status}</span>`;
+  const yes=document.getElementById('confirmYes');
+  yes.className='btn '+(isDanger?'':'primary');
+  yes.style.background=isDanger?'#ef4444':'';
+  yes.style.borderColor=isDanger?'#ef4444':'';
+  yes.style.color='#fff';
+  yes.textContent=title.startsWith('Resume')?'Yes, resume':title.startsWith('Pause')?'Yes, pause':'Yes, cancel';
+  yes.onclick=yesFn;
+  openModal('confirmModal');
+}
+
+window.closeModal=closeModal;
+
+// --- Connected calendar: two calendar colours, original i4T layout ---
+// A separate read-only reference to the standard All Work Orders table.
+// The Future & Recurring configuration actions do not alter this table.
+const allWorkOrders=[
+ {task:'-',created:'12/11/2026',completed:'-',status:'Issued',wo:'WO623827',description:'test 1',plan:'Residency 1',invoice:'-'},
+ {task:'-',created:'26/10/2026',completed:'-',status:'Paid',wo:'WO618200',description:'AC job',plan:'Residency 3',invoice:'Paid'},
+ {task:'-',created:'23/10/2026',completed:'-',status:'Completed',wo:'WO617819',description:'AC Quotation',plan:'Residency 3',invoice:'-'},
+ {task:'-',created:'23/10/2026',completed:'-',status:'Paid',wo:'WO617818',description:'AC Job',plan:'Residency 3',invoice:'Paid'},
+ {task:'1267',created:'20/10/2026',completed:'-',status:'Invoiced',wo:'0616229',description:'This is a routine A/C service',plan:'Gold Coast',invoice:'Approved'},
+ {task:'123',created:'19/10/2026',completed:'-',status:'Paid',wo:'0616220',description:'Need to do routine maintenance',plan:'Blueberry Hills',invoice:'Paid'},
+ {task:'-',created:'03/09/2026',completed:'-',status:'Invoiced',wo:'0602833',description:'This is a A/C installation',plan:'Sydney View Apartments',invoice:'Approved'},
+ {task:'-',created:'28/08/2026',completed:'-',status:'Invoiced',wo:'0601340',description:'Install AC indoor unit',plan:'Sydney View Apartments',invoice:'Approved'},
+ {task:'-',created:'28/08/2026',completed:'-',status:'Invoiced',wo:'0601253',description:'Need to install an AC',plan:'Sydney View Apartments',invoice:'Approved'},
+ {task:'1234',created:'24/08/2026',completed:'-',status:'Issued',wo:'WO599888',description:'Test',plan:'Kendon Apartments',invoice:'-'}
+];
+function renderAllWOs(){
+ let term=document.getElementById('allWOSearch').value.toLowerCase().trim();
+ let rows=allWorkOrders.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(term)));
+ document.getElementById('allWOTableBody').innerHTML=rows.map(r=>`<tr>
+ <td>${escapeHtml(r.task)}</td><td>${escapeHtml(r.created)}</td><td>${escapeHtml(r.completed)}</td><td>${escapeHtml(r.status)}</td><td>${escapeHtml(r.wo)}</td><td>${escapeHtml(r.description)}</td><td>${escapeHtml(r.plan)}</td><td>${escapeHtml(r.invoice)}</td>
+ <td><div class="actions">${['👁','♙','▤','▣','✉'].map((ico,i)=>`<button class="icon-action" type="button" data-allwo="${escapeHtml(r.wo)}" title="${['View','Existing action','Existing document','Existing notes','Existing communication'][i]}">${ico}</button>`).join('')}</div></td></tr>`).join('');
+ document.getElementById('allWOTableCount').textContent=`Showing ${rows.length?1:0} to ${rows.length} of ${rows.length} entries`;
+ document.querySelectorAll('[data-allwo]').forEach(b=>b.onclick=()=>{
+  let r=allWorkOrders.find(x=>x.wo===b.dataset.allwo);
+  document.getElementById('viewBody').innerHTML=`<div class="detail-card"><h3>${escapeHtml(r.wo)}</h3><div class="kv"><div class="k">WO Number</div><div>${escapeHtml(r.wo)}</div></div><div class="kv"><div class="k">Description</div><div>${escapeHtml(r.description)}</div></div><div class="kv"><div class="k">Strata Plan</div><div>${escapeHtml(r.plan)}</div></div><div class="kv"><div class="k">Status</div><div>${escapeHtml(r.status)}</div></div></div>`;
+  openModal('viewModal');
+ });
+}
+document.getElementById('allWOSearch').oninput=renderAllWOs;
+document.getElementById('allExport').onclick=()=>showToast('Standard WO table: visual reference only.');
+document.getElementById('allManageTable').onclick=()=>showToast('Standard WO table: existing functionality retained outside this prototype.');
+document.querySelectorAll('[name="allRecordType"]').forEach(r=>r.onchange=()=>showToast('Standard WO/Quote Request view is a visual reference in this prototype.'));
+// Simulated test data only. No live i4T Business connectivity or background job execution.
+const regularWOs=[
+ {id:'WO-85120',description:'Plumbing Repair',property:'SP 49716',category:'Plumbing',contractor:'Hollier Family Trust t/a GWDL Pty Ltd',created:'2026-11-13',createdTime:'10:30',appointment:null},
+ {id:'WO-85125',description:'Electrical Repair',property:'SP 58906',category:'Electrical',contractor:'MJ Electrical Services',created:'2026-11-10',createdTime:'16:05',appointment:null},
+ {id:'WO-85098',description:'Cleaning Service',property:'SP 74330',category:'Cleaning',contractor:'CleanFlow Services',created:'2026-11-09',createdTime:'08:15',appointment:{date:'2026-11-12',time:'14:00'}},
+ {id:'WO-85132',description:'Pump Repair',property:'SP 61230',category:'Mechanical',contractor:'PropertyCare Group',created:'2026-11-11',createdTime:'09:20',appointment:null},
+];
+// Link generated WOs to occurrences, not to the series as a whole.
+const issuedOccurrences=new Map();
+issuedOccurrences.set('R00208|2026-11-12',{wo:'WO-846900',appointment:null});
+const failedOccurrences=new Set();
+const simulationAudit=[];
+function logSimulation(msg){simulationAudit.unshift(msg);document.getElementById('demoAuditItems').innerHTML=simulationAudit.slice(0,6).map(x=>`<div class="audit-line">${escapeHtml(x)}</div>`).join('');}
+function resetSimulationAudit(){simulationAudit.length=0;document.getElementById('demoAuditItems').textContent='No simulated events yet. Select a prototype scenario above.';}
+let activePage='schedules',calendarView='week',calendarAnchor=new Date(2026,10,11),selectedEvent=null, calendarFirstOpen=true;
+const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const monthFmt=new Intl.DateTimeFormat('en-AU',{month:'long',year:'numeric'});
+const durationMinutes=120;
+function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7);}
+function isoLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function plusDays(d,n){let x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x;}
+function dateAt(iso){return new Date(iso+'T12:00:00');}
+function monthAdvance(iso,n){let d=dateAt(iso),first=new Date(d.getFullYear(),d.getMonth()+n,1);let last=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();return isoLocal(new Date(first.getFullYear(),first.getMonth(),Math.min(d.getDate(),last)));}
+function timeDisplay(t){let [h,m]=t.split(':').map(Number);return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;}
+function timeEnd(t){let [h,m]=t.split(':').map(Number);let n=(h*60+m+durationMinutes)%1440;return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;}
+function eventTimeRange(e){return `${timeDisplay(e.time)} – ${timeDisplay(timeEnd(e.time))}`;}
+function humanDate(s){return dateAt(s).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});}
+function occurrenceDates(s,from,to){
+ if(['Paused','Cancelled'].includes(s.status))return [];
+ let start=s.occurrence,end=s.endDate||'9999-12-31',out=[];
+ if(s.kind!=='Recurring')return start>=from && start<=to && start<=end?[start]:[];
+ let cur=start;for(let i=0;i<300&&cur<=to&&cur<=end;i++){
+  if(cur>=from && (!s.resumeFrom || cur>=s.resumeFrom))out.push(cur);
+  if(s.recurrence==='Weekly')cur=isoLocal(plusDays(dateAt(start),7*(i+1)));
+  else cur=monthAdvance(start,(s.recurrence==='Monthly'?1:s.recurrence==='Quarterly'?3:s.recurrence==='Half-Yearly'?6:12)*(i+1));
+ }
+ return out;
+}
+function calendarEvents(from,to){
+ let all=[];
+ for(const r of regularWOs){let scheduled=!!r.appointment,date=scheduled?r.appointment.date:r.created,time=scheduled?r.appointment.time:r.createdTime;
+  if(date>=from&&date<=to)all.push({id:r.id,kind:'Regular',description:r.description,property:r.property,category:r.category,contractor:r.contractor,date,time,status:scheduled?'Scheduled':'Created',woNumber:r.id,created:r.created,createdTime:r.createdTime,stage:scheduled?'supplier':'created',ref:null});
+ }
+ // Include generated historical occurrences even after a parent recurring series is paused/cancelled.
+ for(const [key,generated] of issuedOccurrences){
+  let [id,occDate]=key.split('|'),s=findSchedule(id);if(!s)continue;
+  const date=generated.appointment?.date||occDate,time=generated.appointment?.time||s.time;
+  if(date>=from&&date<=to)all.push({id:key,ref:s.id,taskId:s.taskId,kind:s.kind,description:s.description,property:s.property,category:s.category,contractor:s.contractor,date,time,status:'Scheduled',woNumber:generated.wo,stage:generated.appointment?'supplier':'planned',occDate});
+ }
+ for(const s of schedules){
+  for(const occDate of occurrenceDates(s,from,to)){
+   const key=s.id+'|'+occDate;
+   if(issuedOccurrences.has(key)||failedOccurrences.has(key))continue;
+   all.push({id:key,ref:s.id,taskId:s.taskId,kind:s.kind,description:s.description,property:s.property,category:s.category,contractor:s.contractor,date:occDate,time:s.time,status:'Scheduled',woNumber:null,stage:'planned',occDate});
+  }
+ }
+ const filters=[...document.querySelectorAll('#calendarFilters input:checked')].map(e=>e.value);
+ return all.filter(e=>filters.includes(e.status)).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)||a.id.localeCompare(b.id));
+}
+function calendarClass(status){return status==='Created'?'cal-event-created':'cal-event-scheduled';}
+function calendarStart(){let d=new Date(calendarAnchor);return calendarView==='day'?d:calendarView==='week'?plusDays(d,-d.getDay()):new Date(d.getFullYear(),d.getMonth(),1);}
+function calendarEnd(){let d=calendarStart();return calendarView==='day'?d:calendarView==='week'?plusDays(d,6):new Date(d.getFullYear(),d.getMonth()+1,0);}
+function renderMini(){
+ document.getElementById('miniTitle').textContent=monthFmt.format(calendarAnchor);
+ const first=new Date(calendarAnchor.getFullYear(),calendarAnchor.getMonth(),1),start=plusDays(first,-first.getDay());
+ let html='';for(let i=0;i<42;i++){let d=plusDays(start,i),other=d.getMonth()!==calendarAnchor.getMonth();html+=`<button class="${other?'other':''} ${isoLocal(d)===isoLocal(calendarAnchor)?'selected':''}" data-mini-date="${isoLocal(d)}">${d.getDate()}</button>`;}
+ document.getElementById('miniDays').innerHTML=html;
+ document.querySelectorAll('[data-mini-date]').forEach(b=>b.onclick=()=>{calendarAnchor=dateAt(b.dataset.miniDate);closeCalendarPopover();renderCalendar();});
+}
+function calendarButton(e,cls,compact=false){let label=compact?`${timeDisplay(e.time)} · ${escapeHtml(e.description)}`:`<strong>${timeDisplay(e.time)}</strong>${escapeHtml(e.description)}<small>${escapeHtml(e.woNumber||e.ref)} · ${e.status}${e.ref?' · ⟳':''}</small>`;
+ let minute=parseInt(e.time.slice(3,5),10);return `<button type="button" class="${cls} ${calendarClass(e.status)}" style="${cls==='cal-week-event'?'top:'+minute+'px;':''}" data-event="${e.id}" title="${escapeHtml(e.description)} – ${e.status}">${label}</button>`;
+}
+function renderCalendar(){
+ const preserveScroll=document.querySelector('.cal-main').scrollTop;
+ renderMini();let from=calendarStart(),to=calendarEnd(),events=calendarEvents(isoLocal(from),isoLocal(to));
+ let title=monthFmt.format(calendarAnchor);if(calendarView==='week')title+=` (Week ${isoWeek(calendarAnchor)})`;
+ if(calendarView==='day')title=calendarAnchor.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ document.getElementById('calTitle').textContent=title;
+ document.querySelectorAll('[data-cal-view]').forEach(b=>b.classList.toggle('selected',b.dataset.calView===calendarView));
+ const grid=document.getElementById('calendarGrid');
+ if(calendarView==='week'||calendarView==='day'){
+  const days=calendarView==='week'?Array.from({length:7},(_,i)=>plusDays(from,i)):[from];
+  let cls=calendarView==='week'?'cal-grid-week':'cal-grid-day',html=`<div class="${cls}"><div class="cal-grid-head"></div>`;
+  for(const d of days){let weekend=d.getDay()===0||d.getDay()===6;html+=`<div class="cal-grid-head ${weekend?'weekend':''} ${isoLocal(d)===isoLocal(calendarAnchor)?'current':''}"><div class="weekday">${dayNames[d.getDay()]}</div><div class="daynum">${d.getDate()}</div></div>`;}
+  for(let hour=0;hour<=23;hour++){
+   html+=`<div class="cal-time-label">${hour%12||12} ${hour>=12?'PM':'AM'}</div>`;
+   for(const d of days){let here=events.filter(e=>e.date===isoLocal(d)&&parseInt(e.time.slice(0,2),10)===hour);html+=`<div class="cal-hour-cell">${here.map((e,i)=>calendarButton(e,'cal-week-event').replace('left:3px','left:3px')).join('')}</div>`;}
+  }
+  grid.innerHTML=html+'</div>';
+ }else if(calendarView==='month'){
+  let start=plusDays(from,-from.getDay()),html='<div class="cal-month-grid">';for(const name of dayNames)html+=`<div class="cal-month-head">${name}</div>`;
+  for(let i=0;i<42;i++){let day=plusDays(start,i),iso=isoLocal(day),off=day.getMonth()!==calendarAnchor.getMonth();let matches=off?[]:events.filter(e=>e.date===iso);html+=`<div class="cal-month-day ${off?'off':''}"><b>${day.getDate()}</b>${matches.map(e=>calendarButton(e,'cal-month-event',true)).join('')}</div>`;}grid.innerHTML=html+'</div>';
+ }else{
+  grid.innerHTML=`<div class="cal-timeline-list">${events.length?events.map(e=>`<button class="cal-timeline-row" data-event="${e.id}"><time>${humanDate(e.date)} · ${eventTimeRange(e)}</time><div class="cal-timeline-event ${calendarClass(e.status)}"><b>${escapeHtml(e.description)}</b> &nbsp; ${escapeHtml(e.property)} · ${e.status}</div></button>`).join(''):'<p class="cal-empty">No events for this month and selected filters.</p>'}</div>`;
+ }
+ for(const b of grid.querySelectorAll('[data-event]'))b.onclick=()=>{let e=events.find(x=>x.id===b.dataset.event);if(e)showCalendarPopover(e);};
+ if(selectedEvent){let still=events.find(e=>e.id===selectedEvent.id);if(still)showCalendarPopover(still);else closeCalendarPopover();}
+}
+function kv(label,val){return `<div class="kv"><span class="k">${label}</span><span>${escapeHtml(val)}</span></div>`;}
+function showCalendarPopover(e){
+ selectedEvent=e;const pop=document.getElementById('calendarPopover');pop.hidden=false;
+ const planned=e.stage==='planned',created=e.stage==='created';
+ let content=`<div class="cal-popover-head"><span>${planned?'Recurring Work Order Details':'Work Order Details'}</span><button id="closeCalPop" aria-label="Close details">×</button></div><div class="cal-popover-body"><h3>${escapeHtml(e.description)}</h3>`;
+ if(created){content+=`<span class="status-note">Awaiting supplier schedule</span>${kv('WO Number',e.woNumber)}${kv('Created Date & Time',humanDate(e.created)+', '+timeDisplay(e.createdTime))}${kv('Service Category',e.category)}${kv('Plan No.',e.property)}${kv('Trade Supplier',e.contractor)}${kv('Calendar Block',eventTimeRange(e))}`;}
+ else if(planned){content+=`<span class="status-note orange">Planned occurrence${e.woNumber?' · WO issued, awaiting supplier appointment':''}</span>${kv('Recurring WO ID',e.ref)}${kv('Task ID',e.taskId)}${kv('Service Category',e.category)}${kv('Plan No.',e.property)}${kv('Trade Supplier',e.contractor)}${kv('Requested Service',humanDate(e.occDate)+', '+eventTimeRange(e))}${kv('Linked WO',e.woNumber||'Not yet created')}`;}
+ else{content+=`<span class="status-note orange">Supplier-confirmed schedule</span>${kv('WO Number',e.woNumber)}${e.ref?kv('Recurring WO ID',e.ref):''}${kv('Service Category',e.category)}${kv('Plan No.',e.property)}${kv('Trade Supplier',e.contractor)}${kv('Confirmed Service',humanDate(e.date)+', '+eventTimeRange(e))}`;}
+ content+=`</div><div class="cal-popover-actions"><button id="calendarViewAction">${planned&&!e.woNumber?'View Recurring Work Order':'View Work Order'}</button></div>`;
+ pop.innerHTML=content;
+ pop.querySelector('#closeCalPop').onclick=closeCalendarPopover;
+ pop.querySelector('#calendarViewAction').onclick=()=>{
+  if(e.ref){
+   let s=findSchedule(e.ref);if(!s)return;
+   if(e.woNumber){
+    document.getElementById('viewBody').innerHTML=`<div class="detail-card"><h3>${escapeHtml(e.description)}</h3>${kv('WO Number',e.woNumber)}${kv('Recurring WO ID',e.ref)}${kv('Task ID',e.taskId)}${kv('WO Issuance','12:00 am on '+humanDate(e.occDate))}${kv('Service Category',e.category)}${kv('Strata Plan',e.property)}${kv('Supplier',e.contractor)}${kv(e.stage==='supplier'?'Supplier-Confirmed Appointment':'Requested Service Date & Time',humanDate(e.date)+' '+eventTimeRange(e))}${kv('Scheduling State',e.stage==='supplier'?'Supplier confirmed':'Awaiting supplier confirmation')}</div>`;
+   }else renderViewModal(s);
+  }
+  else{document.getElementById('viewBody').innerHTML=`<div class="detail-card"><h3>${escapeHtml(e.description)}</h3>${kv('WO Number',e.woNumber)}${kv('Service Category',e.category)}${kv('Strata Plan',e.property)}${kv('Supplier',e.contractor)}${kv('Created',humanDate(e.created)+' '+timeDisplay(e.createdTime))}${e.stage==='supplier'?kv('Confirmed Appointment',humanDate(e.date)+' '+eventTimeRange(e)):kv('Status','Awaiting supplier schedule')}</div>`;}
+  openModal('viewModal');
+ };
+}
+function closeCalendarPopover(){selectedEvent=null;document.getElementById('calendarPopover').hidden=true;}
+function switchPage(page){
+ activePage=page;
+ document.getElementById('scheduleScreen').hidden=page!=='schedules';
+ document.getElementById('allWorkOrdersScreen').hidden=page!=='all';
+ document.getElementById('calendarScreen').hidden=page!=='calendar';
+ document.getElementById('navAll').classList.toggle('active',page==='all');
+ document.getElementById('navSchedules').classList.toggle('active',page==='schedules');
+ document.getElementById('navCalendar').classList.toggle('active',page==='calendar');
+ history.replaceState(null,'','#'+page);
+ if(page==='calendar'){renderCalendar();if(calendarFirstOpen){document.querySelector('.cal-main').scrollTop=8*60;calendarFirstOpen=false;}}
+ if(page==='all')renderAllWOs();
+}
+document.getElementById('navAll').onclick=e=>{e.preventDefault();switchPage('all')};
+document.getElementById('navSchedules').onclick=e=>{e.preventDefault();switchPage('schedules')};
+document.getElementById('navCalendar').onclick=e=>{e.preventDefault();switchPage('calendar')};
+for(const btn of document.querySelectorAll('[data-cal-view]'))btn.onclick=()=>{calendarView=btn.dataset.calView;closeCalendarPopover();renderCalendar();};
+function shiftCal(n){if(calendarView==='day')calendarAnchor=plusDays(calendarAnchor,n);else if(calendarView==='week')calendarAnchor=plusDays(calendarAnchor,n*7);else calendarAnchor=new Date(calendarAnchor.getFullYear(),calendarAnchor.getMonth()+n,Math.min(calendarAnchor.getDate(),28));closeCalendarPopover();renderCalendar();}
+document.getElementById('calPrev').onclick=()=>shiftCal(-1);document.getElementById('calNext').onclick=()=>shiftCal(1);
+document.getElementById('calToday').onclick=()=>{calendarAnchor=new Date();closeCalendarPopover();renderCalendar();};
+document.getElementById('miniPrev').onclick=()=>{calendarAnchor=new Date(calendarAnchor.getFullYear(),calendarAnchor.getMonth()-1,Math.min(calendarAnchor.getDate(),28));renderCalendar();};
+document.getElementById('miniNext').onclick=()=>{calendarAnchor=new Date(calendarAnchor.getFullYear(),calendarAnchor.getMonth()+1,Math.min(calendarAnchor.getDate(),28));renderCalendar();};
+document.querySelectorAll('#calendarFilters input').forEach(x=>x.onchange=()=>{closeCalendarPopover();renderCalendar();});
+// Demo controls are separate from the customer-facing calendar actions.
+document.getElementById('demoRegular').onclick=()=>{
+ let w=regularWOs[0];w.appointment={date:'2026-11-16',time:'09:00'};
+ calendarAnchor=dateAt('2026-11-16');closeCalendarPopover();renderCalendar();
+ logSimulation('i4T Business: supplier confirmed WO-85120 for 16 Nov at 9:00 am → Maintenance moves the same calendar event to orange Scheduled.');
+ showToast('Supplier appointment synchronised to Maintenance.');
+};
+document.getElementById('demoReschedule').onclick=()=>{
+ let w=regularWOs[0];w.appointment={date:'2026-11-18',time:'11:00'};
+ calendarAnchor=dateAt('2026-11-18');closeCalendarPopover();renderCalendar();
+ logSimulation('i4T Business: WO-85120 rescheduled to 18 Nov at 11:00 am → same event moved; WO creation timestamp unchanged.');
+ showToast('Appointment updated, without duplicate event.');
+};
+document.getElementById('demoRelease').onclick=()=>{
+ const key='R00209|2026-11-17';
+ if(failedOccurrences.has(key)){showToast('Cannot release: this simulated occurrence failed compliance. Reset the demo to retry the scenarios.');return;}
+ if(!issuedOccurrences.has(key))issuedOccurrences.set(key,{wo:'WO-850456',appointment:null});
+ calendarAnchor=dateAt('2026-11-17');closeCalendarPopover();renderCalendar();
+ logSimulation('17 Nov, 12:00 am (property-local) → compliance passed; one WO-850456 created/issued to supplier in i4T Business, linked to R00209 / Task 8467592.');
+ showToast('One WO created; no duplicate calendar event.');
+};
+document.getElementById('demoRecurringAppointment').onclick=()=>{
+ const key='R00209|2026-11-17';
+ const wo=issuedOccurrences.get(key);
+ if(!wo){showToast('First select Release recurring WO to create the actual WO.');return;}
+ wo.appointment={date:'2026-11-19',time:'14:00'};
+ calendarAnchor=dateAt('2026-11-19');closeCalendarPopover();renderCalendar();
+ logSimulation('i4T Business: supplier scheduled generated WO-850456 for 19 Nov at 2:00 pm → only the November occurrence moves; next quarterly occurrence remains 17 Feb.');
+ showToast('Generated WO appointment confirmed; recurrence unchanged.');
+};
+document.getElementById('demoCompliance').onclick=()=>{
+ const key='R00208|2026-11-12';
+ failedOccurrences.add(key);
+ calendarAnchor=dateAt('2026-11-12');closeCalendarPopover();renderCalendar();
+ logSimulation('12 Nov, 12:00 am → required supplier compliance expired. No WO created for R00208 / Task 8462399; the projected occurrence is removed from the active calendar.');
+ logSimulation('13 Nov → simulated failed-generation emails to strata manager (i4T Maintenance) and supplier (i4T Business workflow). No messages actually sent.');
+ showToast('Compliance failure simulated; no WO created or blocked-colour event.');
+};
+document.getElementById('demoReminder').onclick=()=>{
+ logSimulation('7 days before required compliance document expiry → reminder prepared for strata manager through Maintenance and supplier through Business. No messages actually sent.');
+ showToast('Seven-day reminder simulated for both parties.');
+};
+document.getElementById('demoReset').onclick=()=>{
+ regularWOs[0].appointment=null;issuedOccurrences.clear();failedOccurrences.clear();
+ resetSimulationAudit();calendarAnchor=dateAt('2026-11-11');closeCalendarPopover();renderCalendar();
+ showToast('All simulated integration scenarios reset.');
+};
+const originalRenderTable=renderTable;
+renderTable=function(){originalRenderTable();if(activePage==='calendar')renderCalendar();};
+renderTable();if(location.hash==='#calendar')switchPage('calendar');else if(location.hash==='#all')switchPage('all');
+</script>
+</body>
+</html>
